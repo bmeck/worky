@@ -14,4 +14,11 @@ console.log('queueing');
 thread.enqueue(work_parts[0], work_parts[1]);
 
 // something to keep loop alive while we wait on log()
-setInterval(Function.prototype, 1e5);
+var test_blocking = Boolean(process.env.BLOCK);
+if (test_blocking) {
+ for(;;){}
+ console.log('NEVER SHOULD GET HERE');
+}
+else {
+  setInterval(Function.prototype, 1e5);
+}
