@@ -19,16 +19,16 @@ struct EvalWork {
 
 // called on the main thread to queue work safely on the loop
 static void parse(thread_resource_t* tr, void* data, size_t size) {
-  Isolate* isolate = Isolate::GetCurrent();
+  EvalWork* work = (EvalWork*)data;
+  Local<Function> fn = *reinterpret_cast<v8::Local<Function>*>(
+          const_cast<v8::Persistent<Function>*>(&(work->callback)));
+  Isolate* isolate = fn->GetIsolate();
   HandleScope scope(isolate);
 
   uint64_t tid;
   pthread_threadid_np(NULL, &tid);
   printf("parse %d\n", tid);
 
-  EvalWork* work = (EvalWork*)data;
-  Local<Function> fn = *reinterpret_cast<v8::Local<Function>*>(
-          const_cast<v8::Persistent<Function>*>(&(work->callback)));
 
   // cleanup
   work->callback.Reset();
