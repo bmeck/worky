@@ -20,6 +20,7 @@ struct EvalWork {
 // called on the main thread to queue work safely on the loop
 static void parse(thread_resource_t* tr, void* data, size_t size) {
   Isolate* isolate = Isolate::GetCurrent();
+  HandleScope scope(isolate);
 
   uint64_t tid;
   pthread_threadid_np(NULL, &tid);

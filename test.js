@@ -1,6 +1,7 @@
 var Threx = require('threx');
 function log() {
   console.log('log:', arguments);
+  process.exit(0);
 }
 var worky = require('./build/Release/worky.node');
 
@@ -11,7 +12,6 @@ var thread = new Threx();
 thread.spawn();
 console.log('queueing');
 thread.enqueue(work_parts[0], work_parts[1]);
-// should printf here for parse?
-thread.join();
-console.log('joined');
-// should log: here
+
+// something to keep loop alive while we wait on log()
+setInterval(Function.prototype, 1e5);
