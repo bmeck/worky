@@ -23,23 +23,21 @@ static void parse(thread_resource_t* tr, void* data, size_t size) {
   Local<Function> fn = *reinterpret_cast<v8::Local<Function>*>(
           const_cast<v8::Persistent<Function>*>(&(work->callback)));
   Isolate* isolate = fn->GetIsolate();
+  isolate->Enter();
   HandleScope scope(isolate);
-
-  uint64_t tid;
-  pthread_threadid_np(NULL, &tid);
-  printf("parse %d\n", tid);
-
-
-  // cleanup
-  work->callback.Reset();
-  free(work->src);
-  free(work);
 
   // call out cb
   int argc = 1;
   Handle<String> str = String::NewFromUtf8(isolate, work->src, String::NewStringType::kNormalString, work->length);
   Local<Value> argv[] = {str};
-  node::MakeCallback(isolate, v8::Object::New(isolate), fn, argc, argv);
+  Local<Object> recv = Object::New(isolate); 
+  fn->Call(recv, argc, argv);
+
+  // cleanup
+  work->callback.Reset();
+  free(work->src);
+  free(work);
+  isolate->Exit();
 }
 
 // used on the thread to perform some work
@@ -47,8 +45,6 @@ static void parse(thread_resource_t* tr, void* data, size_t size) {
 //   via parse
 static void test_cb(thread_resource_t* tr, void* data, size_t size) {
   EvalWork* work = (EvalWork*)data;
-  uint64_t tid;
-  pthread_threadid_np(NULL, &tid);
   // send same ptr back to main thread
   printf("work.src %s\n", work->src);
   threx::enqueue_cb(tr, parse, work); 
